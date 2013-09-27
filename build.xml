@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id: build.xml,v 1.5 2007/06/27 18:09:54 press Exp $Id -->
+<project name="niomon" basedir="." default="build" >
+
+<property name="niomon.host" value="localhost" />
+<property name="niomon.port" value="8000" />
+<property name="niomon.count" value="10" />
+
+<path id="classpath"></path>
+
+<target name="dist" >
+	<delete file="niomon-dst.jar" />
+	<jar destfile="niomon-dst.jar" >
+		<fileset dir="." includes="src/**" />
+		<fileset file="build.xml"/>
+		<fileset file=".project"/>
+	</jar>
+</target>
+	
+<target name="client" description="run NIO client" >
+	<java classname="niomon.NIOClient" fork="yes" maxmemory="100M">
+		<classpath path="bld/niomon.jar" />
+		<classpath refid="classpath" />
+		<arg value="${niomon.host}" />
+		<arg value="${niomon.port}" />
+		<arg value="${niomon.count}" />
+	</java>
+</target>
+
+<target name="server" description="run NIO server" >
+	<java classname="niomon.NIOServer" fork="yes" maxmemory="100M">
+		<classpath path="bld/niomon.jar" />
+		<classpath refid="classpath" />
+		<arg value="${niomon.port}" />
+	</java>
+</target>
+
+<target name="build" description="full build" depends="clean,init,compile,jar"/>
+
+<target name="clean" description="clean" >
+	<delete dir="javadoc" quiet="false" />
+	<delete dir="bld"    quiet="false" />
+</target>
+	
+<target name="init" >
+	<mkdir dir="javadoc" />
+	<mkdir dir="bld" />
+	<delete file="bld/niomon.jar" quiet="false" />
+</target>
+
+<target name="compile" depends="init" >
+	<javac sourcepath="" srcdir="src" destdir="bld">
+		<classpath refid="classpath" />
+	</javac>
+</target>
+
+<target name="jar" depends="compile" >
+	<delete  file="bld/niomon.jar" quiet="false" />
+	<jar destfile="bld/niomon.jar">
+		<fileset dir="bld"/>
+		<fileset dir="src"/>
+	</jar>
+</target>
+
+<target name="javadoc" description="javadoc" >
+<javadoc 
+	sourcepath="src" 
+	destdir="javadoc" 
+	packagenames="niomon" 
+	linksource="yes" 
+	maxmemory="512m"
+	use="yes" 
+	splitindex="yes" 
+	private="yes" 
+	version="yes"
+	windowtitle="NIO PERF MONITOR"
+	header="header" 
+	footer="footer"
+	doctitle="doctitle" 
+>
+	<classpath refid="classpath" />
+</javadoc>
+</target>
+
+</project>
