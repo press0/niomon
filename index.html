@@ -1,1 +1,358 @@
-hello world 
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<title>
+NIOMON - &nbsp;NIO &nbsp;Network &nbsp;Monitor Tool
+</title>
+<head>
+
+<style type="text/css">
+ table { 
+  vertical-align: top ;
+  caption-side : right ;
+ }
+ div:first-letter { font-size:large }
+ a.x:visited {color: #0000ff}
+ a.x:hover { background: #66ff66 ; font-size: 105% }
+ BODY {
+  font-family: Verdana, Arial;
+  font-size:smaller;
+ }
+
+ pre.code {
+  font-family: cg-times, courier new, courier;
+  font-size:100% ;
+  color:yellow ;
+  border: 1px solid yellow;
+  background-color:black;
+ }
+
+ pre.y {
+  font-size:100% ;
+   font-family:cg-times ;
+   border-style: solid ;
+   border-width: 1px 1px 1px 1px ;
+   border-color: red ;
+ }
+ pre.z {
+  font-family: cg-times, courier new, courier;
+  font-size:75% ;
+  border: 1px solid black;
+  background-color: #d0d0d0;
+ }
+ pre.zold {
+   font-size:75% ;
+   font-family:cg-times ;
+   background-color:black ;
+   color:black ;
+   border-style: solid ;
+   border-width: 1px 1px 1px 1px ;
+   border-color: red ;
+ }
+</style>
+
+<CENTER><H2>NIOMON - &nbsp;NIO &nbsp;Network &nbsp;Monitor Tool</H2></CENTER>
+</head>
+<body>
+
+<P>
+
+</div>
+
+<h2>Introduction</h2>
+
+<P>
+NIOMON is a simple NIO network monitoring tool.  (670 words; April, 2008) &nbsp;
+
+<uL>
+
+<LI>Introduction
+<LI>NIO Use Case
+<LI>Network monitoring
+<LI>References and ReferenceQueues
+<LI>Application Design
+<LI>NIOServer Walk Through
+<LI>How to Download, Install, and Test
+<LI>Java &nbsp;Documentation
+
+</uL>
+
+By <FONT size=""><a href="#Author">Clayton Press</a></FONT>
+
+<h2>Introduction</h2>
+
+<P>
+
+Java 1.4 introduced a new API for high performance, nonblocking I/O and networking.  
+
+The API consists of three development packages:  java.nio, java.nio.channels, java.nio.charset, 
+
+and two Service-provider packages:  java.nio.channels.spi, java.nio.charset.spi.  
+
+<P>
+
+Multiplexed nonblocking IO is also useful for client applications that maintain multiple network connections in a 
+non-blocking manner - for example a web browser.
+
+<P>
+
+Developing client and server network applications is complex. 
+There are a range of issues to consider: multi-threading, sockets, configuration, tuning.  
+
+As the demand for high peformance low latency network application increases, so does the need for
+developer tools with which to test & monitor such applications, during development and in production.
+
+<P>
+
+The NIOMON network application monitor is a simple tool which which to monitor NIO-based java applications.
+Thus far, it monitors on the run:
+<ul>
+<li>	number of connections
+<li>	connection speed, throughput, latency
+<li>	thread stack frames, snap-shot and time-series
+<li>	cache memory eviction rate
+</ul>
+
+
+
+
+<h2>NIO Use Case</B></h2>
+
+<P>
+
+Previously, standard IO server applications required a dedicated thread for each connection.  
+
+A multi-threaded socket server, serving hundreds of connections, must maintain hundreds of threads.
+
+
+
+NIO introduces channels and selectors which allow multiplexed, non-blocking I/O operations.
+
+The Channel Selector semantics enable a dramatic reduction in multi-threaded resources and complexity.
+
+<P>
+
+Let’s take a look at a simple NIO test application.
+
+<P>
+
+
+
+<P>
+
+
+<h2>NIOMON Network monitor tool</h2>
+
+<P>
+
+The NIOMON Network monitor connects multiple NIOClient to one NIOServer .  &nbsp;
+The NIOClient sends a message to the NIOServer over a socket.  The NIOServer responds back.  
+This continues according to a TTL "count" parameter.  
+The "count" parameter is configured on the NIOClient.
+
+<P>
+
+The application is composed of one server and multiple client components.  &nbsp;
+The client sends a message to the server.   &nbsp;
+The client displays the response back from the server.   &nbsp;
+The server component manages remote communication with multiple connected clients.  &nbsp;
+The server sends the message back to the respective client.  &nbsp;
+
+<P>
+
+NIOMON consists of 2 standalone java applications, NIOClient and NIOServer, which communicate over TCP network sockets.
+NIOServer is capable of handling multiple NIOClients
+
+<P>
+
+The server application
+<ul>
+<li>	1a. Listens for TCP connections on a well known IP address and port
+<li>	1b. Accepts connections initiated on that port from multiple clients
+<li>	1c. Receives messages from multiple clients and echoes them back
+<li>	1d. Tracks when each client drops a connection
+<li>	1e. Maintains a thread dump time series WeakReference Memory Cache 
+
+</ul>
+The client application
+<ul>
+<li>	2a. Establishs a connection with the server at it's well known IP address and port
+<li>	2b. Sends messages in an asynchronous manner to the server. The message is a Date String. 
+<li>	2c. The server adds a response tag to the message so that the client knows how many "round trips" to the server have occurred.
+<li>	2d. Reports the round trip time for each message, the running average round trip time for all messages 
+<li>	2e. Reports the running throughput rate for all messages.
+    
+</ul>
+Both client and server application automated testing
+<ul>
+<li>	3a. ant tasks for testing multiple clients and server - short burst or long duration connections
+<li>	3b. ant tasks for testing Reference memory cache eviction rate
+</ul>
+
+
+<h2>References and ReferenceQueues</h2>
+
+Reference and ReferenceQueue types merit special comment.
+
+<P>
+In a high frequency environment, close attention to memory management is required, hence Reference types.
+The java.lang.ref Package description says it best:
+
+
+<P>
+A <b>Reference</b> object encapsulates a reference to some other object so that the reference itself may be examined and manipulated like any other object. Three types of reference objects are provided, each weaker than the last: soft, weak, and phantom. Each type corresponds to a different level of reachability, as defined below. <b>Soft references</b> are for implementing memory-sensitive caches, <b>weak references</b> are for implementing canonicalizing mappings that do not prevent their keys (or values) from being reclaimed, and <b>phantom references</b> are for scheduling pre-mortem cleanup actions in a more flexible way than is possible with the Java finalization mechanism.
+
+<P>
+Each reference-object type is implemented by a subclass of the abstract base Reference class. An instance of one of these subclasses encapsulates a single reference to a particular object, called the referent. Every reference object provides methods for getting and clearing the reference. Aside from the clearing operation reference objects are otherwise immutable, so no set operation is provided. A program may further subclass these subclasses, adding whatever fields and methods are required for its purposes, or it may use these subclasses without change.
+
+
+<P>
+<b>Notification</b>
+A program may request to be notified of changes in an object's reachability by registering an appropriate reference object with a reference queue at the time the reference object is created. Some time after the garbage collector determines that the reachability of the referent has changed to the value corresponding to the type of the reference, it will add the reference to the associated queue. At this point, the reference is considered to be enqueued. The program may remove references from a queue either by polling or by blocking until a reference becomes available. Reference queues are implemented by the ReferenceQueue class.
+
+
+<P>
+
+<h2>Application Design</h2>
+
+<P>
+
+<h2>NIOServer Walk Through</h2>
+
+<P>
+
+A condensed version of the Server class logic, is listed below.  &nbsp;Exception handling and other support logic has been excluded for clarity.
+
+Refer to the source code for more details.
+
+BASIC INFO
+<pre class="y">
+   public class NIOServer {
+
+        // try - catch blocks omitted for brevity
+
+
+	1	ServerSocketChannel ssc = ServerSocketChannel.open();
+	2	ssc.socket().bind(new InetSocketAddress( port ));
+	3	ssc.configureBlocking(false);
+
+
+	4	SelectionKey serverkey = ssc.register(selector, SelectionKey.OP_ACCEPT);
+
+
+	5	selector.select();	//block until a channel is ready for I/O
+
+
+	6	SocketChannel client = ssc.accept();
+	7	client.configureBlocking(false);
+	8	SelectionKey clientkey = client.register(selector, SelectionKey.OP_READ);
+
+
+	9	bytesread = client.read(buffer);
+
+
+	10	buffer.flip();
+	11	String request = decoder.decode(buffer).toString();
+	12	buffer.clear();
+
+   }
+</pre>
+
+
+<h3>Program Notes</h3>
+
+<UL type="circle">
+
+<LI>Line 1 creates a ServerSocketChannel 
+
+<br>
+
+<LI>Line 2 bind to a Socket
+
+<br>
+
+<LI>Line 3 configure non-blocking
+
+<br>
+
+<LI>Line 5 block until one multiplexed channel is ready for IO
+
+
+<br>
+
+<LI>Line 6 accept client SocketChannel
+
+<br>
+
+<LI>Line 9 read client SocketChannel into special purpose Container Byte Buffer 
+
+<br>
+
+<LI>Line 10 switch  R/W IO Byte Buffer Container direction 
+
+
+</UL>
+
+
+<P>
+
+
+<h2>How to Download, Install and Run</h2>
+
+<P>
+
+Complete source code is available for research and development purposes. &nbsp;
+
+The following link provides step-by-step technical information to guide you through the Download and Installation process.
+<p>
+<A HREF="niomonTechSupport.htm" target="ImageWindow">N I O M O N &nbsp;&nbsp;&nbsp;T e c h n i c a l &nbsp;&nbsp;&nbsp;S u p p o r t</A>
+
+<P>
+
+
+<h2>Java &nbsp;Documentation</h2>
+
+<P>
+
+<A HREF="http://ece.uic.edu/~cpress/niomon/jdoc/" target="ImageWindow">J a v a  &nbsp;&nbsp;&nbsp;D o c</A>
+
+</UL>
+
+<P>
+
+<h2>Conclusion</h2>
+
+<P>
+
+Java NIO provides for high performance, non-blocking, multiplexed I/O network server development.
+
+<P>
+
+<h2>About the Author</h2><a name="Author">
+
+<P>
+
+Clayton Press has worked in Chicago as a systems developer since 1982. &nbsp;
+
+He has built trading systems for UBS, ABN-AMRO, the CME, the CBOT, State Street and T.Rowe Price.  &nbsp;
+
+He is certified with Sun, IBM, and Microsoft technologies. &nbsp;
+
+He can be reached at  <A href="mailto:press0@gmail.com">press0@gmail.com</A>
+
+
+<P>
+
+<h2>References</h2>
+
+<UL>
+<LI> <A href="http://java.sun.com/j2se/1.4.2/docs/guide/nio/">NIO Home</A>, Sun
+<LI> <A href="http://java.sun.com/javase/6/docs/api/">Java 6 API</A>, Sun
+<LI> <A href="http://www.oreilly.com/catalog/javaio2">Java I/O, by Rusty Harold</A>, O'Reilly 
+<LI> <A href="http://www.oreilly.com/catalog/javanp3">Java Network Programming, by Rusty Harold</A>, O'Reilly 
+<LI> <A href="http://www.oreilly.com/catalog/javanio/">Java NIO, Ron Hitchens</A>, O'Reilly 
+</UL>
+
+
+</body>
+</html>
+
